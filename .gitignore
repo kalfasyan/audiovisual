@@ -105,4 +105,4 @@ venv.bak/
 
 # mine
 /images
-img1.jpg
+*.jpg
