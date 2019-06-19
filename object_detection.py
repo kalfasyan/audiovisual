@@ -34,13 +34,6 @@ crop = 350
 image = image[crop:-crop, crop:-crop]
 img_og = image.copy()
 
-(H, W) = image.shape[:2]
-
-# Save the original image files in a separate subfolder
-og_imageName = 'Original_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
-path = './images/' 
-cv2.imwrite(os.path.join(path , og_imageName), image) 
-
 # Process the original image
 gray = cv2.cvtColor(image.copy(),cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(image.copy(), (7, 7), 0)
@@ -59,14 +52,17 @@ for i, ctr in enumerate(sorted_cnts):
     x,y,w,h = cv2.boundingRect(ctr)
     roi = img_og[y:y+h, x:x+w]
     # cv2.rectangle(image, (x,y), (x+w, y+h), (0,255,0),2)
-    cv2.imwrite('./images/test_{}.png'.format(i), roi)
+    cv2.imwrite('./images/test_{}_{}_{}_{}_{}.png'.format(i,x,y,w,h), roi)
 
 print("I count {} insects in this image".format(len(cnts)))
 
-# Let's highlight the insects in the original image by drawing a
-# green contour around them
+# Highlighting contours of detected objects
 edged_image = image.copy()
 cv2.drawContours(edged_image, cnts, -1, (0, 255, 0), 1);
 
-fullimg_name = './images/img_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
-cv2.imwrite(fullimg_name,edged_image)
+# Save the original and contour image files in a separate subfolder
+path = './images/' 
+og_imageName = 'Original_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
+cv2.imwrite(os.path.join(path , og_imageName), image) 
+fullimg_name = 'Contours_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
+cv2.imwrite(os.path.join(path , fullimg_name),edged_image)
