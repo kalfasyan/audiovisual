@@ -1,6 +1,6 @@
 # Import the necessary packages
-#from picamera.array import PiRGBArray
-#from picamera import PiCamera
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import cv2
 import mahotas
 import datetime
@@ -11,58 +11,69 @@ import numpy as np
 import glob
 import argparse
 
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", type=str, required=True,
-	help="path to input image")
-args = vars(ap.parse_args())
-
 def plot_cv2(img):
     cv2.imshow('image',img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-#camera = PiCamera()
-#camera.resolution = (640, 480)
-#camera.framerate = 32
-#rawCapture = PiRGBArray(camera, size=(640, 480))
 
-#camera.capture(rawCapture, format="bgr")
-image = cv2.imread(args["image"])
-image = cv2.resize(image, (1350,1350))
-crop = 350
-image = image[crop:-crop, crop:-crop]
-img_og = image.copy()
+import RPi.GPIO as GPIO
+import time
+
+pin = 17
+var = 0
+GPIO.setmode(GPIO.BCM)
+
+GPIO.setup(pin, GPIO.OUT)
+
+GPIO.output(pin, GPIO.HIGH)
+
+time.sleep(.5)
+
+
+camera = PiCamera()
+camera.resolution = (640, 480)
+camera.framerate = 32
+rawCapture = PiRGBArray(camera, size=(640, 480))
+
+camera.capture(rawCapture, format="bgr")
+image = rawCapture.array
+#image = cv2.imread(args["image"])
+#image = cv2.resize(image, (350,350))
+image = image[100:430, 150:500]
+
+(H, W) = image.shape[:2]
+print(H,W)
+# Save the original image files in a separate subfolder
+imageName = 'Original_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
+path = '/home/pi/Desktop/' 
+#cv2.imwrite(os.path.join(path , imageName), image) 
 
 # Process the original image
-gray = cv2.cvtColor(image.copy(),cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(image.copy(), (7, 7), 0)
-thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 19, 2)#11, 3)
-filtered = cv2.medianBlur(thresh,13) # 13
+gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(image, (7, 7), 0)
+thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 3)#11, 3)
+filtered = cv2.medianBlur(thresh,9) # 13
 edged = cv2.Canny(filtered, 30, 150)
 
 cv2.imshow("Input", image)
 cv2.imshow("Canny", edged)
 cv2.waitKey(0)
 
-(cnts, _) = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-sorted_cnts = sorted(cnts, key=lambda cnt: cv2.boundingRect(cnt)[0])
-for i, ctr in enumerate(sorted_cnts):
-    x,y,w,h = cv2.boundingRect(ctr)
-    roi = img_og[y:y+h, x:x+w]
-    # cv2.rectangle(image, (x,y), (x+w, y+h), (0,255,0),2)
-    cv2.imwrite('./images/test_{}_{}_{}_{}_{}.png'.format(i,x,y,w,h), roi)
+(_,cnts, _) = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 print("I count {} insects in this image".format(len(cnts)))
 
-# Highlighting contours of detected objects
+# Let's highlight the insects in the original image by drawing a
+# green contour around them
 edged_image = image.copy()
 cv2.drawContours(edged_image, cnts, -1, (0, 255, 0), 1);
 
-# Save the original and contour image files in a separate subfolder
-path = './images/' 
-og_imageName = 'Original_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
-cv2.imwrite(os.path.join(path , og_imageName), image) 
-fullimg_name = 'Contours_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
-cv2.imwrite(os.path.join(path , fullimg_name),edged_image)
+ResultName = 'Result_' + str(time.strftime("%d_%m_%Y_%H_%M_%S")) + '.jpg'
+cv2.imwrite(ResultName,edged_image)
+
+camera.close()
+GPIO.output(pin, GPIO.LOW)
+time.sleep(1)
+
+GPIO.cleanup()
