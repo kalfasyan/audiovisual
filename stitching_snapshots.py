@@ -1,4 +1,4 @@
-
+# credits to Pyimagesearch blog (Adrian Rosebrock) 
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from imutils import paths
