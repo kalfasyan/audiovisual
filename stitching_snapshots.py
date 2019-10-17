@@ -1,4 +1,4 @@
-# credits to Pyimagesearch blog (Adrian Rosebrock) 
+
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from imutils import paths
@@ -6,27 +6,49 @@ import imutils
 import time
 import cv2
 import numpy as np
+import os
 
 snaps = []
+positions = ['1','2','3']
+snapdir = 'images/test/'
 
+filelist = [ f for f in os.listdir(snapdir) if f.endswith(".png") ]
+for f in filelist:
+    os.remove(os.path.join(snapdir, f))
+
+# Full list of Exposure and White Balance options. 120 photos
+#list_ex  = ['auto','night','nightpreview','backlight',
+#            'spotlight','sports','snow','beach','verylong',
+#            'fixedfps','antishake','fireworks']
 
 while True:
-	camera = PiCamera()
-	rawCapture = PiRGBArray(camera)
-	time.sleep(0.1)
+	# camera = PiCamera()
+	# camera.resolution = (1000, 1088)
+	# #camera.framerate = 2 # 32
+	# camera.awb_mode = 'off'
+	# camera.awb_gains = (2.5, 0.9)
+
 
 	snap = input("Snapshot position?\n")
 
-	assert isinstance(snap, str) and snap in ['1','2'], 'Try again!'
+	assert isinstance(snap, str) and snap in positions, 'Try again!'
 	snaps.append(snap)
 
-	camera.capture(rawCapture, format="bgr")
-	image = rawCapture.array
-	if not camera.closed:
-		camera.close()
+	os.system("raspistill -t 3000 -awb off -awbg 2.5,0.9 -o images/test/snapshot_{}.png".format(snap))
 
-	cv2.imwrite("images/test/snapshot_{}.png".format(snap), image)
-	if set(snaps) == set(['1','2']):
+	# rawCapture = PiRGBArray(camera, size=(1000, 1088))
+	time.sleep(1.0)
+	# camera.capture(rawCapture, format="bgr")
+	# image = rawCapture.array
+
+
+
+	# if not camera.closed:
+		# camera.close()
+	# image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+	# cv2.imwrite("images/test/snapshot_{}.png".format(snap), image)
+	
+	if set(snaps) == set(positions):
 		end = input("Finished?\n")
 		if end in ['y','Y','Yes','YES','yes']:
 			break
@@ -34,7 +56,7 @@ while True:
 			continue
 
 
-args = {'crop':1,
+args = {'crop':0,
 		'images':'images/test',
 		'output':'stitched_{}.png'.format(str(time.strftime("%d_%m_%Y_%H_%M_%S")))}
 
@@ -43,10 +65,11 @@ print("[INFO] loading images...")
 imagePaths = sorted(list(paths.list_images(args["images"])))
 images = []
 
-# loop over the image paths, load each one, and add them to our
-# images to stich list
+# loop over the image paths, load each one, rotate them by 90 degrees 
+# and add them to our images to stich list
 for imagePath in imagePaths:
 	image = cv2.imread(imagePath)
+	image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
 	images.append(image)
 
 # initialize OpenCV's image sticher object and then perform the image
@@ -118,10 +141,33 @@ if status == 0:
 	cv2.imwrite(args["output"], stitched)
 
 	# display the output stitched image to our screen
-	cv2.imshow("Stitched", stitched)
-	cv2.waitKey(0)
+	# cv2.imshow("Stitched", stitched)
+	# cv2.waitKey(0)
 
 # otherwise the stitching failed, likely due to not enough keypoints)
 # being detected
 else:
 	print("[INFO] image stitching failed ({})".format(status))
+
+
+
+
+
+###################
+	# # capture frames from the camera
+	# for frame in camera.capture_continuous(rawCapture, format="rgb", use_video_port=True):
+		# image = frame.array
+		
+		# # show the frame
+		# #cv2.imshow("Frame", image)
+		# key = cv2.waitKey(1) & 0xFF
+
+		# # clear the stream in preparation for the next frame
+		# rawCapture.truncate(0)
+
+		# # if the `q` key was pressed, break from the loop
+		# #if key == ord("q"):
+		# image = rawCapture.array
+		# image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+ 
+		# cv2.imwrite("images/test/snapshot_{}.png".format(snap), image)
