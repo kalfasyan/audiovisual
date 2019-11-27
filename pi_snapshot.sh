@@ -19,9 +19,6 @@ if [ $# -eq 0 ]
     exit 1
 fi
 
-#PI_INDEX=$1
-#INDEX=$2
-
 if [ $PI_INDEX = 0 ]; then
     # name of calib picture
     PICTURE_NAME='/home/pi/FOTOBOX/calib_images/RPi4_p0_i'$INDEX'.jpg'
@@ -33,26 +30,21 @@ fi
 
 # name of calib picture
 PICTURE_NAME='RPi0_p'$PI_INDEX'_i'$INDEX'.jpg'
+echo 'Connecting to RPi Zero with index '$PI_INDEX' and taking picture'
+echo '..'
 
-if [$PI_INDEX = 1]; then
-    echo 'Connecting to RPi Zero with index '$PI_INDEX' and taking picture'
+if [ $PI_INDEX = 1 ]; then
     ssh -tTo ServerAliveInterval=60 pi@10.0.1$PI_INDEX.2 'raspistill -t 1000 -dg 1.0 -awb off -awbg 0.92,2.8 -o '$PICTURE_NAME 
-    sleep 2
-    echo 'Transferring picture from RPi Zero with index '$PI_INDEX
-    rsync -a pi@10.0.1$PI_INDEX.2:/home/pi/$PICTURE_NAME calib_images/ &
-    echo 'Done.'
-    exit 0
-fi
-
-if [$PI_INDEX = 2]; then
-    echo 'Connecting to RPi Zero with index '$PI_INDEX' and taking picture'
+elif [ $PI_INDEX = 2 ]; then
     ssh -tTo ServerAliveInterval=60 pi@10.0.1$PI_INDEX.2 'raspistill -t 1000 -dg 1.0 -awb off -awbg 0.99,2.87 -o '$PICTURE_NAME 
-    sleep 2
-    echo 'Transferring picture from RPi Zero with index '$PI_INDEX
-    rsync -a pi@10.0.1$PI_INDEX.2:/home/pi/$PICTURE_NAME calib_images/ &
-    echo 'Done.'
+else
+    echo 'Wrong RPi index passed.'
     exit 0
 fi
 
+sleep 2
+echo 'Transferring picture from RPi Zero with index '$PI_INDEX
+rsync -a pi@10.0.1$PI_INDEX.2:/home/pi/$PICTURE_NAME calib_images/ &
+echo 'Done.'
 
 exit 0
