@@ -13,9 +13,9 @@ import os
 import time
 import sys
 
-assert len(sys.argv) > 1, 'Give number of seconds to wait as argument'
+#assert len(sys.argv) > 1, 'Give number of seconds to wait as argument'
 
-waitsecs = int(sys.argv[1])
+waitsecs = 1#int(sys.argv[1])
 print(f"Waiting {waitsecs} seconds..\n")
 time.sleep(waitsecs)
 
@@ -43,7 +43,7 @@ except:
 
 print("[INFO]:\n\
 ethpi1 and ethpi2 should be true showing that the RPi-Zeroes are \
-properly connected to the master RPi3. usb0 shows that probably one of them \
+properly connected to the master RPi3. usb0 being True shows that probably one of them \
 is named usb0 instead of the corresponding ethpi connection.\n")
 
 print(f"[STATUS]:\n\
@@ -55,4 +55,6 @@ condition = (ethpi1 and ethpi1_status) and (ethpi2 and ethpi2_status)
 
 if not condition:
 	print("Resetting power of ports 1 & 2")
-	os.system('sudo /home/pi/hubpower-deb/hubpower-master/off_and_on_again.sh &')
+	os.system('sudo /home/pi/FOTOBOX/hubpower-deb/hubpower-master/off_and_on_again.sh &')
+else:
+	print("EVERYTHING OK")
