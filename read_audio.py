@@ -12,11 +12,12 @@ RECORD_SECONDS = 5
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 p = pyaudio.PyAudio()
-print("Using device: {}".format(p.get_device_info_by_index(3)))
+dev = 2
+print("Using device: {}".format(p.get_device_info_by_index(2)))
 stream = p.open(format=FORMAT,
                 channels=CHANNELS,
                 rate=RATE,
-		input_device_index=1,
+		input_device_index=2,
                 input=True,
                 frames_per_buffer=CHUNK)
 
