@@ -10,7 +10,7 @@ kiwisolver==1.0.1
 mahotas==1.4.5
 matplotlib==3.0.3
 networkx==2.3
-numpy==1.16.2
+numpy==1.22.0
 opencv-contrib-python==4.2.0.32
 pandas==0.24.2
 parso==0.3.4
